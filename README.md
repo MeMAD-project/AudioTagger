@@ -1,3 +1,5 @@
+Program for recognizing audio contents of sound files and videos.
+
 # AudioTagger
 
 This audio event classifier can generate several recognized tags for given audio input, such as ‘acoustic guitar’, ‘dog bark’, and ‘male speech’. The classifier is trained using a dataset called Google AudioSet, and this dataset has an ontology which covers more than 600 classes of audio events. During the process of recognition for each second, the classifier would generate probabilities of all classes based on selected context window. Then, classes with probabilities higher than the selected threshold are outputted.
@@ -65,3 +67,4 @@ Yu, Changsong, et al. "Multi-level Attention Model for Weakly Supervised Audio C
 ###### github:
 https://github.com/tensorflow/models/tree/master/research/audioset
 https://github.com/qiuqiangkong/ICASSP2018_audioset
+
