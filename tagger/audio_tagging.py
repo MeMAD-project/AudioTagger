@@ -12,7 +12,7 @@ import datetime
 import argparse
 import time
 import pandas as pd
-import plotly.plotly as py
+import chart_studio.plotly as py
 import plotly.graph_objs as go
 from plotly import __version__
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
@@ -49,7 +49,7 @@ def genWave(videoName):
     if clip.audio is None:
         print('No audio to recognize in the video.')
         return 0
-    audioName = videoName[:-4]+'.wav'
+    audioName = os.path.splitext(videoName)[0]+'.wav'
     # 16 bit 44100 fs PCM wav
     #print(audioName)
     clip.audio.write_audiofile(audioName, codec='pcm_s16le', verbose=1)
@@ -62,8 +62,8 @@ def getMelSpecGram(fname):
     if not os.path.isfile(fname):
         print('File does not exists.')
         return 0
-    dataType = fname[-3:]
-    if dataType == 'mp4':
+    dataType = os.path.splitext(fname)[1]
+    if dataType == '.mp4' or dataType == '.mkv' or dataType == '.webm':
         audioName = genWave(fname)
         mels = prepareAudio(audioName)
     elif dataType == 'wav':
@@ -183,6 +183,8 @@ def giveSumRes(pred, thres=0.015, showSpeechMusic=False):
     with open("class_labels_indices.csv", "r") as fh:
         allclasses = fh.read().splitlines()
     classes2displaynames={int(i.split(',')[0]):i.split(',')[2] for i in allclasses[1:]}
+    # for i in range(len(allclasses)-1):
+        # print(i, classes2displaynames[i], pred[i])
     sort = np.argsort(pred)
     sort = sort[::-1]
     for i in range(527):
@@ -221,7 +223,7 @@ def subWrite(f, num, sub):
 # thres: threshold probabilities
 #################################################################
 def genSubsThres(preds, fname, thres, ifShowMusicSpeech=False):
-    srtName = fname[:-4] + '.srt'
+    srtName = os.path.splitext(fname)[0] + '.srt'
     with open(srtName, "w") as f:
         for i in range(len(preds)):
             sub = giveThres(preds[i], thres, ifShowMusicSpeech)
@@ -269,11 +271,15 @@ if __name__ == '__main__':
     preds = tenSegModelPreds(getAudioSetFeatures(FILE_NAME), 
                              MODEL_NAME, WINDOW_LEFT,
                              WINDOW_RIGHT)
-    with open(FILE_NAME[:-4]+'.PROBS', 'wb') as f:
+    with open(os.path.splitext(FILE_NAME)[0]+'.PROBS', 'wb') as f:
         pickle.dump(preds, f)
-    printHeatMap(preds)
+    # printHeatMap(preds)
     pred = np.average(preds,axis=0)
     genSubsThres(preds, FILE_NAME, THRESHOLD, SHOW_MUSIC_SPEECH)
     giveSumRes(pred, THRESHOLD, SHOW_MUSIC_SPEECH)
+    print('PICSOMFEATURE', end='')
+    for i in range(len(pred)):
+        print('', pred[i], end='')
+    print('', os.path.splitext(os.path.split(FILE_NAME)[1])[0])
     elapsed = time.time() - t
     print('The generation time is: ', elapsed)
