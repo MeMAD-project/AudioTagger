@@ -17,6 +17,8 @@ import plotly.graph_objs as go
 from plotly import __version__
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import pickle
+import wget
+
 ####################################################################
 # audioSet feature extractor takes 0.960s audio
 # truncate the remainig 0.040s for each second for better indexing
@@ -74,13 +76,23 @@ def getMelSpecGram(fname):
 # extract the AudioSet features from the file
 ##################################################################
 def getAudioSetFeatures(fname):
+    vggish_model = 'vggish_model.ckpt'
+    url = 'https://storage.googleapis.com/audioset/vggish_model.ckpt'
+    if not os.path.isfile(vggish_model):
+        print('Downloading <'+url+'>.')
+        wget.download(url, vggish_model)
+        
+    if not os.path.isfile(vggish_model):
+        print('File <'+vggish_model+'> does not exists nor was found as <'+url+'>.')
+        exit(1)
+
     pproc = vggish_postprocess.Postprocessor('vggish_pca_params.npz')
     mels = getMelSpecGram(fname)
     with tf.Graph().as_default(), tf.Session() as sess:
         # Define the model in inference mode, load the checkpoint, and
         # locate input and output tensors.
         vggish_slim.define_vggish_slim(training=False)
-        vggish_slim.load_vggish_slim_checkpoint(sess, 'vggish_model.ckpt')
+        vggish_slim.load_vggish_slim_checkpoint(sess, vggish_model)
         features_tensor = sess.graph.get_tensor_by_name(
             vggish_params.INPUT_TENSOR_NAME)
         embedding_tensor = sess.graph.get_tensor_by_name(
