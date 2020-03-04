@@ -1,0 +1,9 @@
+moviepy
+wget
+scipy
+resampy
+soundfile
+tensorflow==1.14
+keras
+pandas
+chart_studio
