@@ -18,6 +18,7 @@ from plotly import __version__
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import pickle
 import wget
+import getpass
 
 ####################################################################
 # audioSet feature extractor takes 0.960s audio
@@ -51,9 +52,14 @@ def genWave(videoName):
     if clip.audio is None:
         print('No audio to recognize in the video.')
         return 0
-    audioName = os.path.splitext(videoName)[0]+'.wav'
+    # audioName = os.path.splitext(videoName)[0]+'.wav'
+    tmpdir = "/tmp/"+getpass.getuser()
+    os.mkdir(tmpdir)
+    audioName = tmpdir+"/"+os.path.split(videoName)[1]
+    audioName = os.path.splitext(audioName)[0]+'.wav'
+    print('Extracting audio to <'+audioName+'>')
     # 16 bit 44100 fs PCM wav
-    #print(audioName)
+    # print(audioName)
     clip.audio.write_audiofile(audioName, codec='pcm_s16le', verbose=1)
     return audioName
 
@@ -62,12 +68,13 @@ def genWave(videoName):
 ###################################################################
 def getMelSpecGram(fname):
     if not os.path.isfile(fname):
-        print('File does not exists.')
-        return 0
+        print('File <'+fname+'> does not exists.')
+        exit(1)
     dataType = os.path.splitext(fname)[1]
     if dataType == '.mp4' or dataType == '.mkv' or dataType == '.webm':
         audioName = genWave(fname)
         mels = prepareAudio(audioName)
+        os.remove(audioName)
     elif dataType == 'wav':
         mels = prepareAudio(fname)
     return mels
@@ -137,6 +144,7 @@ def pad2Ten(features):
 # left & right context
 #################################################################
 def tenSegModelPreds(features, modelName, left=3, right=0):
+    print('Loading <'+modelName+'>');
     model = load_model(modelName)
     length = features.shape[0]
     inputAll = np.zeros((length, 10, 128))
@@ -283,15 +291,19 @@ if __name__ == '__main__':
     preds = tenSegModelPreds(getAudioSetFeatures(FILE_NAME), 
                              MODEL_NAME, WINDOW_LEFT,
                              WINDOW_RIGHT)
-    with open(os.path.splitext(FILE_NAME)[0]+'.PROBS', 'wb') as f:
-        pickle.dump(preds, f)
-    # printHeatMap(preds)
+    if False:
+        with open(os.path.splitext(FILE_NAME)[0]+'.PROBS', 'wb') as f:
+            pickle.dump(preds, f)
+    if False:
+        printHeatMap(preds)
     pred = np.average(preds,axis=0)
-    genSubsThres(preds, FILE_NAME, THRESHOLD, SHOW_MUSIC_SPEECH)
+    if False:
+        genSubsThres(preds, FILE_NAME, THRESHOLD, SHOW_MUSIC_SPEECH)
     giveSumRes(pred, THRESHOLD, SHOW_MUSIC_SPEECH)
     print('PICSOMFEATURE', end='')
     for i in range(len(pred)):
         print('', pred[i], end='')
-    print('', os.path.splitext(os.path.split(FILE_NAME)[1])[0])
+    #print('', os.path.splitext(os.path.split(FILE_NAME)[1])[0])
+    print()
     elapsed = time.time() - t
     print('The generation time is: ', elapsed)
