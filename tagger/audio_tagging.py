@@ -54,7 +54,11 @@ def genWave(videoName):
         return 0
     # audioName = os.path.splitext(videoName)[0]+'.wav'
     tmpdir = "/tmp/"+getpass.getuser()
-    os.mkdir(tmpdir)
+    if not os.path.isdir(tmpdir):
+        os.mkdir(tmpdir)
+    tmpdir += "/audio_tagging"
+    if not os.path.isdir(tmpdir):
+        os.mkdir(tmpdir)
     audioName = tmpdir+"/"+os.path.split(videoName)[1]
     audioName = os.path.splitext(audioName)[0]+'.wav'
     print('Extracting audio to <'+audioName+'>')
