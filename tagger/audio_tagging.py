@@ -307,7 +307,7 @@ if __name__ == '__main__':
     print('PICSOMFEATURE', end='')
     for i in range(len(pred)):
         print('', pred[i], end='')
-    #print('', os.path.splitext(os.path.split(FILE_NAME)[1])[0])
-    print()
+    print('', os.path.splitext(os.path.split(FILE_NAME)[1])[0])
+    #print()
     elapsed = time.time() - t
     print('The generation time is: ', elapsed)
