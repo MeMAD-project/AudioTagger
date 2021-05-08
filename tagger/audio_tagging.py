@@ -51,7 +51,7 @@ def genWave(videoName):
     clip = mp.VideoFileClip(videoName)
     if clip.audio is None:
         print('No audio to recognize in the video.')
-        return 0
+        return None
     # audioName = os.path.splitext(videoName)[0]+'.wav'
     tmpdir = "/tmp/"+getpass.getuser()
     if not os.path.isdir(tmpdir):
@@ -75,11 +75,16 @@ def getMelSpecGram(fname):
         print('File <'+fname+'> does not exists.')
         exit(1)
     dataType = os.path.splitext(fname)[1]
-    if dataType == '.mp4' or dataType == '.mkv' or dataType == '.webm':
+    # print('fname=[{}] dataType=[{}]'.format(fname, dataType))
+    if dataType == '.mp4' or dataType == '.mkv' or \
+       dataType == '.webm' or dataType == '.wmv':
         audioName = genWave(fname)
+        if audioName is None:
+            return np.zeros((6, 96, 64))
         mels = prepareAudio(audioName)
+        # print(mels.shape)
         os.remove(audioName)
-    elif dataType == 'wav':
+    elif dataType == '.wav':
         mels = prepareAudio(fname)
     return mels
 
